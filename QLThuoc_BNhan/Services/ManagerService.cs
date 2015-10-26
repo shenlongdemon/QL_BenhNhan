@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using DataModels;
 using LinqToDB;
-using Utilities;
 using System.Dynamic;
+using Utilities;
 
 namespace Services
 {
@@ -57,6 +57,10 @@ namespace Services
                     Price = dh.Price,
                     Date = dh.Date
                 });
+                if (res == 1)
+                {
+                    res = dh.ID;
+                }
             }
             else
             {

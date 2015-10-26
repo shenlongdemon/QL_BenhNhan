@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Servic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories", "Repositories\Repositories.csproj", "{E54B483F-1FBF-49E2-9B1D-E962FB8133C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "..\CSharpDLL\Utilities\Utilities.csproj", "{044B9B2B-FC2A-4312-BBEE-C938CB6E5332}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "..\..\CSharpDLL\Utilities\Utilities.csproj", "{044B9B2B-FC2A-4312-BBEE-C938CB6E5332}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

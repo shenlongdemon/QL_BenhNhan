@@ -83,7 +83,7 @@ namespace QLThuoc_BNhan
 
         private void btnToday_Click(object sender, EventArgs e)
         {
-            clearAll();
+            clearForToday();
             setDatetimeforCombobox();
             loadBenhNhanByDate();
         }
@@ -130,7 +130,12 @@ namespace QLThuoc_BNhan
 
         private void dgvDatetime_SelectionChanged(object sender, EventArgs e)
         {
-
+            if (dgvDatetime.SelectedRows.Count > 0)
+            {
+                int benhnhanid = int.Parse(this.dgvDatetime.SelectedRows[0].Cells[0].Value.ToString());
+                DateTime datetime = DateTime.Parse(this.dgvDatetime.SelectedRows[0].Cells[1].Value.ToString());
+                loadDrugHistories(benhnhanid, datetime);
+            }
         }
 
         private void dgvBenhNhan_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -198,32 +203,26 @@ namespace QLThuoc_BNhan
             src.DataSource = new List<DrugHistory>();
             dgvDetail.DataSource = src;
         }
+        private void clearForToday()
+        {            
 
-        private void dgvDetail_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-           
-            
+
+            BindingSource src = new BindingSource();
+            src.DataSource = new List<DrugHistory>();
+            dgvDetail.DataSource = src;
         }
-
-        private void dgvDetail_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
-        {
-            
-
-        }
-
-        private void dgvDetail_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            
-        }
+       
 
         private void dgvDetail_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
 
             try
             {
-
+                int dhid = int.Parse(this.dgvDetail.Rows[e.RowIndex].Cells["clDHID"].Value.ToString());
                 DrugHistory dh = (DrugHistory)this.dgvDetail.Rows[e.RowIndex].DataBoundItem;
-                if (string.IsNullOrEmpty(txtCode.Text.Trim())
+                
+                if (
+                    string.IsNullOrEmpty(txtCode.Text.Trim())
                     || dh.Price == 0 || dh.Count == 0 
                     || string.IsNullOrEmpty(dh.DrugName.Trim())
                     || string.IsNullOrEmpty(dh.Unit.Trim()))
@@ -251,7 +250,12 @@ namespace QLThuoc_BNhan
                 //}
                 dh.BenhNhanID = int.Parse(txtCode.Text);
                 int id = _managerService.Update(dh);
-                this.dgvDetail.Rows[e.RowIndex].Cells[0].Value = id;
+                this.dgvDetail.Rows[e.RowIndex].Cells["clDHID"].Value = id;
+                this.dgvDetail.Rows[e.RowIndex].Cells["clTotal"].Value = dh.Count * dh.Price;
+                calcTotal();
+
+
+
             }
             catch (Exception ex)
             {
@@ -260,10 +264,7 @@ namespace QLThuoc_BNhan
 
         }
 
-        private void dgvDetail_RowLeave(object sender, DataGridViewCellEventArgs e)
-        {
-            
-        }
+       
         private void setFocusForDataGridViewCell(DataGridView dgv, int rowindex, int cellIndex)
         {
             dgv.CurrentCell = dgv.Rows[rowindex].Cells[cellIndex];
@@ -274,12 +275,7 @@ namespace QLThuoc_BNhan
 
         private void dgvDatetime_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (dgvDatetime.SelectedRows.Count > 0)
-            {
-                int benhnhanid = int.Parse(this.dgvDatetime.SelectedRows[0].Cells[0].Value.ToString());
-                DateTime datetime = DateTime.Parse(this.dgvDatetime.SelectedRows[0].Cells[1].Value.ToString());
-                loadDrugHistories(benhnhanid,datetime);
-            }
+            
         }
         private void loadDrugHistories(int benhnhanid, DateTime datetime)
         {
@@ -328,6 +324,8 @@ namespace QLThuoc_BNhan
             {
                 return;
             }
+            loadDrugHistoryDatetime(0);
+            dgvDetail.DataSource = null;
             int day = cbDay.SelectedItem.ToString() == "All" ? 0 : int.Parse(cbDay.SelectedItem.ToString());
             int month = int.Parse(cbMonth.SelectedItem.ToString());
             int year = int.Parse(cbYear.SelectedItem.ToString());
@@ -395,5 +393,73 @@ namespace QLThuoc_BNhan
                 dgvBenhNhan.DataSource = benhnhans;
             }
         }
+
+        
+        private void dgvDetail_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            int row = e.RowIndex;
+            int col = e.ColumnIndex;
+            if(row % 2 == 1)
+            {
+                dgvDetail.Rows[row].DefaultCellStyle.BackColor = Color.FromArgb(236, 236, 236);
+            }
+            if (this.dgvDetail.Columns[e.ColumnIndex].Name == "clTotal")
+            {
+
+                int count = dgvDetail.Columns["clCount"].Index;
+                int price = dgvDetail.Columns["clPrice"].Index;
+                try
+                {
+                    int c = int.Parse(dgvDetail.Rows[e.RowIndex].Cells[count].Value.ToString());
+                    int p = int.Parse(dgvDetail.Rows[e.RowIndex].Cells[price].Value.ToString());
+                    // Check for the string "pink" in the cell.
+                    //DateTime stringValue = (DateTime)e.Value;
+                    e.Value = (c * p).ToString("#,##0");
+
+                }
+                catch (Exception ex) { }
+
+
+            }
+            else if (this.dgvDetail.Columns[e.ColumnIndex].Name == "clPrice")
+            {
+                if (e.Value != null)
+                {
+                    e.Value = int.Parse(e.Value.ToString()).ToString("#,##0");
+                }
+            }
+            else if (this.dgvDetail.Columns[e.ColumnIndex].Name == "clDelete")
+            {
+                DataGridViewButtonCell btn = (DataGridViewButtonCell)dgvDetail.Rows[row].Cells["clDelete"];
+                if (btn != null)
+                {
+                    if (row % 2 == 1)
+                    {
+                        btn.FlatStyle = FlatStyle.Standard;
+                    }
+                    else
+                    {
+                        btn.FlatStyle = FlatStyle.Flat;
+
+                    }
+                }
+            }
+            calcTotal();
+
+        }
+        private void calcTotal()
+        {
+            int sum = dgvDetail.Rows.Cast<DataGridViewRow>()
+                                   .AsEnumerable()
+                                   .Where(x => x.Cells["clCount"].Value != null && x.Cells["clPrice"].Value != null)
+                                   .Sum(x => int.Parse(x.Cells["clCount"].Value.ToString())
+                                            * int.Parse(x.Cells["clPrice"].Value.ToString()))
+                                   ;
+
+
+            lblTongTien.Text = sum.ToString("#,##0");
+        }
+
+      
     }
 }

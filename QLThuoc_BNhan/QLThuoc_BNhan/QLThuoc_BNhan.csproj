@@ -110,6 +110,10 @@
     <Content Include="LinqToDB.Templates\CopyMe.Access.tt.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\CSharpDLL\Utilities\Utilities.csproj">
+      <Project>{044b9b2b-fc2a-4312-bbee-c938cb6e5332}</Project>
+      <Name>Utilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Repositories\Repositories.csproj">
       <Project>{e54b483f-1fbf-49e2-9b1d-e962fb8133c3}</Project>
       <Name>Repositories</Name>
